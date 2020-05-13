@@ -3,23 +3,24 @@ dist: trusty
 jdk: oraclejdk8
 
 env:
-  COVERAGE=0.3
+  - COVERAGE=0.3 SUBPROJECT=ui
+  - COVERAGE=0.3 SUBPROJECT=service/cart
+  - COVERAGE=0.3 SUBPROJECT=service/user
+  - COVERAGE=0.3 SUBPROJECT=repository/order
+  - COVERAGE=0.3 SUBPROJECT=repository/cart
+  - COVERAGE=0.3 SUBPROJECT=repository/product
+  - COVERAGE=0.3 SUBPROJECT=repository/user
 
-script:
-  - ./gradlew clean jar
-  - find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print "$3" "$4" "$5"}'
 jobs:
   include:
     - stage: script
       script: ./gradlew clean jar
+      env: SUBPROJECT=ui
     - script: find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print "$3" "$4" "$5"}'
-    - script: COVERAGE=0.5 ./gradlew -p ./monolithic/ui check
-    - script: COVERAGE=0.5 ./gradlew -p ./monolithic/service/cart check
-    - script: COVERAGE=0.5 ./gradlew -p ./monolithic/service/user check
-    - script: COVERAGE=0.5 ./gradlew -p ./monolithic/repository/order check
-    - script: COVERAGE=0.5 ./gradlew -p ./monolithic/repository/cart check
-    - script: COVERAGE=0.5 ./gradlew -p ./monolithic/repository/product check
-    - script: COVERAGE=0.5 ./gradlew -p ./monolithic/repository/user check
+      env: SUBPROJECT=ui
+    - stage: after_script
+      script: COVERAGE={$COVERAGE} ./gradlew -p ./monolithic/${SUBPROJECT} check
     - stage: deploy
+      env: SUBPROJECT=ui
       provider: script
       script: bash scripts/deploy.sh
