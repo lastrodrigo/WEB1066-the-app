@@ -19,11 +19,11 @@ stages:
 jobs:
   include:
     - stage: script
-      script: ./gradlew clean jar
-    - script: find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print "$3" "$4" "$5"}'
+      script: 
+      - ./gradlew clean jar
+      - find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print "$3" "$4" "$5"}'
     - stage: after_script
       script: COVERAGE={$COVERAGE} ./gradlew -p ./monolithic/${SUBPROJECT} check
     - stage: deploy
-      env: SUBPROJECT=ui
       provider: script
       script: bash scripts/deploy.sh
