@@ -3,27 +3,24 @@ dist: trusty
 jdk: oraclejdk8
 
 env:
-  - COVERAGE=0.3 SUBPROJECT=ui
-  - COVERAGE=0.3 SUBPROJECT=service/cart
-  - COVERAGE=0.3 SUBPROJECT=service/user
-  - COVERAGE=0.3 SUBPROJECT=repository/order
-  - COVERAGE=0.3 SUBPROJECT=repository/cart
-  - COVERAGE=0.3 SUBPROJECT=repository/product
-  - COVERAGE=0.3 SUBPROJECT=repository/user
+  - COVERAGE=1.0 SUBPROJECT=ui
+  - COVERAGE=1.0 SUBPROJECT=service/cart
+  - COVERAGE=1.0 SUBPROJECT=service/user
+  - COVERAGE=1.0 SUBPROJECT=repository/order
+  - COVERAGE=1.0 SUBPROJECT=repository/cart
+  - COVERAGE=1.0 SUBPROJECT=repository/product
+  - COVERAGE=1.0 SUBPROJECT=repository/user
 
-stages:
-  - script
-  - deploy
+script:
+  - ./gradlew clean jar
+  - find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print "$3" "$4" "$5"}'
 
 jobs:
   include:
-    - stage: script
-      script: 
-      - ./gradlew clean jar
-      - find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print "$3" "$4" "$5"}'
-    - stage: after_script
+    - stage: test
       script: COVERAGE=${COVERAGE} ./gradlew -p ./monolithic/${SUBPROJECT} check
-    - stage: deploy
-      provider: script
-      script: bash scripts/deploy.sh
-      if: type NOT IN (push, pull_request)
+
+deploy:
+  provider: script
+  script: bash scripts/deploy.sh
+  if: type NOT IN (push, pull_request)
